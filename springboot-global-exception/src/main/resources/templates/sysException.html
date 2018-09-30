@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>错误异常统一处理界面</title>
+</head>
+<body>
+    <div>
+        <div><span>异常名称：</span><span th:text="${errorName}"></span></div>
+        <div><span>异常发生的请求路径：</span><span th:text="${exceptionUrl}"></span></div>
+        <div><span>异常信息：</span><span th:text="${exception.message}"></span></div>
+        <div><span th:text="异常堆栈信息："></span><span th:text="${exception.stackTrace}"></span></div>
+    </div>
+</body>
+</html>
