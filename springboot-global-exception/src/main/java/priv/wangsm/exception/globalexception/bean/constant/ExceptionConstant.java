@@ -10,4 +10,7 @@ public class ExceptionConstant {
      * 自定义系统异常信息显示界面
      */
     public static final String  GLOBAL_EXCPTION_VIEW_ERROR="sysException";
+
+
+
 }

@@ -1,0 +1,75 @@
+Spring Boot 网页请求异常返回等400处理
+项目中常常需要一个全局异常，防止未处理的异常信息直接暴露给用户，影响用户体验。springboot中可以使用ControllerAdvice和ExceptionHandler这两个注解来做全局异常，这种方式比较便捷，但是也有一个问题：
+ContollerAdvice只能拦截控制器中的异常，换言之，只能拦截500之类的异常，但是对于404这样不会进入控制器处理的异常不起作用。所以我仿造springboot默认的全局处理类BasicController实现全局的异常处理，这样就能很好的按照自己的需求处理异常了。
+
+我们先了解一下springboot默认的异常处理是怎样的：
+    springboot会将所有的异常发送到路径为server.error.path（application.properties中可配置，默认为”/error”）的控制器方法中进行处理，页面请求和ajax请求会分别打到对应的处理方法上。具体的处理可查看BasicErrorController的源代码：
+
+---------------------
+
+所以，可以写一个全局处理的controller，跳转到自己的视图
+
+
+/**
+ * 自定义全局异常统一处理，主要处理HTTP状态请求的异常：比如404,500异常
+ * 参照了：{@link org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController}
+ * 参照了：{@link org.springframework.boot.autoconfigure.web.servlet.error.AbstractErrorController}
+ * @author 王源骏
+ * @since 1.0.0
+ */
+@Controller
+public class GlobalErrorController   implements ErrorController {
+    private static final String ERROR_PATH="/error";  //错误拦截的路径,spirng boot 默认拦截这个路径,也可以在配置文件中重新配置路径
+
+    @RequestMapping(value=ERROR_PATH)
+    public String showErrorHtmlPage(HttpServletRequest request, HttpServletResponse response){
+
+        // HTTP状态码，入404 500等
+        Integer statusCode= (Integer) request.getAttribute("javax.servlet.error.status_code");
+        response.setStatus(statusCode);//设置响应的HTTP状态码
+
+        //设置界面中的信息，可以使用request.setAttribute。。。。。
+
+
+        return "/error/HttpStatusCode.html";
+
+    }
+
+
+    /**
+     * 实现{@link ErrorController} 接口中的方法
+     * @return  ERROR_PATH="/error" 错误拦截的路径
+     */
+    @Override
+    public String getErrorPath() {
+        return ERROR_PATH;
+    }
+}
+
+错误视图界面采用Theamleaf模板
+#热部署生效
+spring.devtools.restart.enabled=true
+
+spring.thymeleaf.cache=false
+spring.thymeleaf.prefix=classpath:/templates/
+
+#中文乱码
+server.tomcat.uri-encoding=UTF-8
+spring.http.encoding.enabled=true
+spring.http.encoding.charset=UTF-8
+spring.http.encoding.force=true
+spring.messages.encoding=UTF-8
+
+
+视图如下：
+<div>
+    <p>HTTP状态码：<span th:text="${errorBody.httpStatusCode}"></span></p>
+    <p>路径：<span th:text="${errorBody.errorPath}"></span></p>
+    <p>时间：<span th:text="${#calendars.format(errorBody.timestamp,'yyyy-MM-dd hh:mm:ss')}"></span></p>
+    <p>错误：<span th:text="${errorBody.error}"></span></p>
+    <p>信息：<span th:text="${errorBody.message}"></span></p>
+</div>
+<div>
+    <span th:text="${errorBody}"></span>
+</div>
+
